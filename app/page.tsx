@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Send, Loader2 } from "lucide-react";
-import { main } from "@/lib/tut";
+import { main } from "@/lib/gorq";
 
 interface Message {
   role: "user" | "assistant";

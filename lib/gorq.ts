@@ -1,8 +1,10 @@
-import fs from "fs"
-import Groq from "groq-sdk";
-import { rooms } from "./rooms";
-import { Booking, bookings } from "./bookings";
+"use server"
+import fs from "fs";
 import path from "path";
+import Groq from "groq-sdk";
+import { rooms } from './rooms';
+import { bookings } from "./bookings";
+import { Booking } from "./bookings";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -44,7 +46,6 @@ const tools: Groq.Chat.ChatCompletionTool[] = [
   },
 ];
 
-
 function getAvailableRooms() {
   return rooms.filter((room) => room.available);
 }
@@ -60,19 +61,21 @@ function bookRoom(room_id: number, fullname: string) {
   const line = `Room: ${room_id} | Guest: ${fullname} | Booked at: ${new Date().toISOString()}\n`;
   const filePath = path.join(process.cwd(), "bookings.txt");
   fs.appendFileSync(filePath, line, "utf-8");
+
   return { success: true, message: `Room ${room_id} booked for ${fullname}.` };
 }
 
-async function main(message: string) {
-  messages.push({ role: "user", content: message })
+export async function main(message: string) {
+  messages.push({ role: "user", content: message });
+
   let response = await groq.chat.completions.create({
+    messages,
     model: "llama-3.3-70b-versatile",
-    messages: messages,
     tools,
-    tool_choice:"auto"
+    tool_choice: "auto",
   });
 
-    while (response.choices[0].message.tool_calls) {
+  while (response.choices[0].message.tool_calls) {
     const assistantMessage = response.choices[0].message;
     const toolCall = assistantMessage.tool_calls![0];
     const args = JSON.parse(toolCall.function.arguments);
@@ -101,7 +104,4 @@ async function main(message: string) {
   }
 
   return response.choices[0].message.content ?? "";
-
 }
-
-main("help me book a room");
